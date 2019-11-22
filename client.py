@@ -11,9 +11,9 @@ class Client:
         self.client.connect(self.addr)
         return self.client.recv(2048).decode()
 
-    def send(self, data):
+    def send(self, gameClass):
         try:
-            self.client.send(str.encode(data))
+            self.client.send(str.encode(gameClass))
             reply = self.client.recv(2048).decode()
             return reply
         except socket.error as e:

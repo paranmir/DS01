@@ -32,9 +32,14 @@ class Server:
                 self.connectedSocketList.append(connectedSocket)
         except:
             pass
+    
+    def 
     # def getServerIp(self):
     #     # 서버 ip 스트링 반환.
     #     return self.gethostbyname(self.server)
 
-server = Server()
-server.run()
+
+# ======= main ===========
+if __name__ == '__main__':
+    server = Server()
+    server.run()
