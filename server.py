@@ -1,6 +1,7 @@
 import socket
 import threading
 import select
+import pickle
 
 HEADER_LENGTH = 10
 class Server:
@@ -9,6 +10,7 @@ class Server:
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socketList = []
         self.clients = {}
+        self.locking = threading.Lock()
 
         #주소 재사용 가능하게 설정.
         serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -41,7 +43,13 @@ class Server:
                 if renewedSocket == self.serverSocket:
                     clientSocket, clientAddress = self.serverSocket.accept()
                     
+
                     data = recvData(clientSocket)
+                    ################### 데이터 저장 ###################
+                    self.locking.release()
+                    # ex ) something_data_class = data
+                    self.locking.release()
+                    ##################################################  
 
                     if data is False:
                         continue
@@ -50,15 +58,18 @@ class Server:
                     # select할 리스트에 클라 추가
                     self.socketList.append(clientSocket)
 
-                    ################### 데이터 저장 ###################
-                    # ex ) data = data
-                    ##################################################
+
 
                 # 이미 리스트에 있는 소켓에서 메세지 보낸거면
                 else:
                     #receive data
                     data = recvData(renewedSocket)
-
+                    ################### 데이터 저장 ###################
+                    self.locking.acquire()
+                    # ex ) something_data_class = data
+                    self.locking.release()
+                    ##################################################  
+                    
                     #if False, client disconnected
                     if data is False:
                         print('closed connection form client')
@@ -74,7 +85,9 @@ class Server:
 
     def sendData(clientSocket):
         ########################데이터 보내기 #######################
-        sendingData = pickle.dumps(''' 보낼 데이터(클래스/튜플/뭐든) ''')
+        self.locking.acquire()
+        # sendingData = pickle.dumps(''' 보낼 데이터(클래스/튜플/뭐든) ''')
+        self.locking.release()
         ############################################################
         sendingData = bytes(f"{len(sendingData):<{HEADER_LENGTH}}", 'utf-8')+sendingData
         clientSocket.send(sendingData)
@@ -104,7 +117,5 @@ class Server:
                     ############## 게임 정보 클래스 리턴할 것 #########################
                     return pickle.loads(full_msg[HEADERSIZE:])
                     ##################################################################
-                    
-
         except:
             return False
