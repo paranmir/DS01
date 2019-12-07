@@ -7,6 +7,8 @@ from poker.hand import Hand, Combo
 
 import game_jokbo
 
+
+
 class GameInfo:    # 게임의 정보를 저장하는 클래스 GameInfo(전달 위한 클래스.)
     def __init__(self,name1,name2,money1,money2):   # 생성자: 플레이어 2명의 이름(string형)과 가진 돈(int형)을 입력해서 생성.
         self.nameOfPlayer1=name1    # 플레이어 1의 이름(string형)
@@ -27,34 +29,35 @@ class GameInfo:    # 게임의 정보를 저장하는 클래스 GameInfo(전달 
         self.collectedBet=0 # 베팅한 돈을 모은 것(int형)
         self.notice=""    # 안내문구(string형)
 
+
     def append_handsOfPlayer1(self,newCard1):   # 플레이어1의 카드패에 입력받은걸 추가해주는 메소드. append가 앞에 붙은거 다 마찬가지로 추가한 것.
-        self.handsOfPlayer1.append(newCard1)    # 매개변수: Card 자료형
+        self.handsOfPlayer1.extend(newCard1)    # 매개변수: Card 자료형
 
     def append_handsOfPlayer2(self,newCard2):   # 매개변수: Card 자료형
-        self.handsOfPlayer2.append(newCard2)
+        self.handsOfPlayer2.extend(newCard2)
 
     def append_communityCards(self,newCard3):   # 매개변수: Card형
-        self.communityCards.append(newCard3)
+        self.communityCards.extend(newCard3)
 
 
     def append_moneyOfPlayer1(self,newMoney1):   # 매개변수: int형
         self.moneyOfPlayer1+=newMoney1
 
     def append_moneyOfPlayer2(self,newMoney2):   # 매개변수: int형
-        self.moneyOfPlayer1+=newMoney2
+        self.moneyOfPlayer2+=newMoney2
 
     def append_collectedBet(self,newMoney3):  # 매개변수: int형
-        self.collectedBet+=newMoney3
+        self.collectedBet+=int(newMoney3)
 
+    def append_bet1(self,newBet1):   # bet1의 값을 newBet1으로 바꾸는 메소드. update가 앞에 붙은거 다 마찬가지임.  
+        self.bet1+=newBet1       # 매개변수: int형
 
-    def update_bet1(self,newBet1):   # bet1의 값을 newBet1으로 바꾸는 메소드. update가 앞에 붙은거 다 마찬가지임.  
-        self.bet1=newBet1       # 매개변수: int형
-
-    def update_bet2(self,newBet2):   # 매개변수: int형
-        self.bet2=newBet2
+    def append_bet2(self,newBet2):   # 매개변수: int형
+        self.bet2+=newBet2
     
     def update_notice(self,newNotice):  # string형을 매개변수로 넣으면 notice의 값을 그걸로 갱신해주는 메소드.
         self.notice=newNotice       # 매개변수: string형.
+
 
 
 

@@ -588,3 +588,36 @@ def evaluateMax(cards):
 
 
 
+
+# # -----------------------------------------------------------------------------
+
+
+
+# deck = list(Card)
+# random.shuffle(deck)
+# player1=[deck.pop() for i in range(7)]
+# player1.sort()
+
+# player2=[deck.pop() for i in range(7)]
+# player2.sort()
+
+
+# print("-----------------------")
+
+
+
+# print(evaluateMax(combination(player1)))
+# print(evaluateMax(combination(player2)))
+# print("player1: ",printEvaluate(evaluateMax(combination(player1))))
+
+# # list1=printEvaluate(evaluateMax(combination(player1)))
+# # print(list1)
+
+# print("player2: ",printEvaluate(evaluateMax(combination(player2))))
+
+# if compare(evaluateMax(combination(player1)),evaluateMax(combination(player2))) == True:
+#     print("플레이어1 승")
+# elif compare(evaluateMax(combination(player1)),evaluateMax(combination(player2))) == False:
+#     print("플레이어2 승")
+# else:
+#     print("무승부")
