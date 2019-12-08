@@ -14,6 +14,7 @@ Copyright 2019. 악동분홍토끼(pinkrabbit412@daum.net). All rights reserved.
 import tkinter
 import tkinter.font as font
 import tkinter.messagebox as msgPop
+import tkinter.simpledialog as inpPop
 import PIL
 from PIL import Image
 from PIL import ImageTk
@@ -28,6 +29,7 @@ import game_jokbo
 
 #전역변수의 선언
 version = "0.0.0.dev191021A.alpha"
+programName = "LANPoker: Client"
 programIcon = ""
 resolution = "1600x900"
 backgroundColor = "#252830"
@@ -35,6 +37,46 @@ backgroundColor = "#252830"
 나눔스퀘어EB_24pt = "-family {나눔스퀘어 ExtraBold} -size 24 -weight bold "
 
 class Window:
+    def disableBetButtonsForStart(self):
+        sleep(0.5) #GUI 생성 전에 쓸데없이 반복 실행되지 않도록 0.5초의 딜레이를 줌.
+        try:
+            self.Betting_CALL.configure(image=self.시작)
+            self.Betting_CALL.configure(command=self.askRunGame)
+            self.Betting_CALL.image=self.시작
+            self.Betting_RAISE.config(state = tkinter.DISABLED)
+            self.Betting_CHECK.config(state = tkinter.DISABLED)
+            self.Betting_FOLD.config(state = tkinter.DISABLED)
+        except:
+            self.disableBetButtons()
+
+    def disableBetButtons(self):
+        sleep(0.5) #GUI 생성 전에 쓸데없이 반복 실행되지 않도록 0.5초의 딜레이를 줌.
+        try:
+            self.Betting_CALL.configure(image=self.베팅)
+            self.Betting_CALL.configure(command=self.askInitBetting)
+            self.Betting_CALL.image=self.베팅
+            self.Betting_RAISE.config(state = tkinter.DISABLED)
+            self.Betting_CHECK.config(state = tkinter.DISABLED)
+            self.Betting_FOLD.config(state = tkinter.DISABLED)
+        except:
+            self.disableBetButtons()
+
+    def enableBetButtons(self):
+        try:
+            self.Betting_CALL.configure(image=self.콜)
+            self.Betting_CALL.configure(command=self.askCall)
+            self.Betting_CALL.image=self.콜
+            self.Betting_RAISE.config(state = "normal")
+            self.Betting_CHECK.config(state = "normal")
+            self.Betting_FOLD.config(state = "normal")
+        except:
+            self.enableBetButtons()
+
+    def updateMoney(self):
+        self.Player1Account.configure(text=(str(self.gameProgress1.moneyOfPlayer1) + "$"))
+        self.Player2Account.configure(text=(str(self.gameProgress1.moneyOfPlayer2) + "$"))
+        self.BettingText.configure(text=str(self.gameProgress1.collectedBet) + "$ 베팅됨")
+            
     ########## [한 세트] 시작 ##########
     def newThread(self):
         newT = threading.Thread(target=self.longTime1)
@@ -58,45 +100,154 @@ class Window:
         from poker import Rank
         from poker import Card
         from poker.hand import Hand, Combo
-        self.gameProgress1=game_class2.GameProgress("고니","아귀",5000,1000)
+        self.gameProgress1=game_class2.GameProgress("아귀", "고니", 10000, 10000)
+        sleep(0.25) #GUI가 생성되기 전에 동기화되는 것을 방지
+        
         while True:
             deck = list(Card)
             random.shuffle(deck)
 
+            #게임을 시작했는지를 감지
+            while True:
+                try:
+                    ##########[ 게임 시작 입력 대기 ]###########
+                    self.runGame = False
+                    self.disableBetButtonsForStart()
+                    while (self.runGame == False):
+                        pass
+                    self.enableBetButtons()
+                    ####################################
+                    break
+                except:
+                    sleep(0.1)
+                    continue
+
+            #플레이어 이름 및 소지금 동기화
+            self.Player1Name.configure(text=self.gameProgress1.nameOfPlayer1) #위쪽 플레이어
+            self.Player2Name.configure(text=self.gameProgress1.nameOfPlayer2) #아래쪽 플레이어 (나)
+            self.updateMoney()
+            
             #손패 카드 뽑기
             self.gameProgress1.update_notice("[Preflop round]")
             hands1=[deck.pop() for i in range(2)]
             self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer1 + "님이 2장의 카드를 뽑았습니다.")
             self.gameProgress1.append_handsOfPlayer1(hands1)
+            self.MyLeftHandData = "" + str(self.gameProgress1.handsOfPlayer1[0].rank) + str(self.gameProgress1.handsOfPlayer1[0].suit)
+            self.MyLeftHand_png = Image.open(cardImages.getImage(self.MyLeftHandData))
+            self.MyLeftHand = ImageTk.PhotoImage(self.MyLeftHand_png)
+            self.MyHand1.configure(image=self.MyLeftHand)#내 왼쪽 손패 보이기
+            self.MyRightHandData = "" + str(self.gameProgress1.handsOfPlayer1[1].rank) + str(self.gameProgress1.handsOfPlayer1[1].suit)
+            self.MyRightHand_png = Image.open(cardImages.getImage(self.MyRightHandData))
+            self.MyRightHand = ImageTk.PhotoImage(self.MyRightHand_png)
+            self.MyHand2.configure(image=self.MyRightHand) #내 오른쪽 손패 보이기
             hands2=[deck.pop() for i in range(2)]
             self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer2 + "님이 2장의 카드를 뽑았습니다.")
             self.gameProgress1.append_handsOfPlayer2(hands2)
-            self.gameProgress1.betting_1()
-            self.gameProgress1.afterBetting_1()
+            ##########[ 플레이어 1 베팅 ]#############
+            self.Betting = False
+            self.disableBetButtons() #초기베팅용
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.enableBetButtons() #초기베팅용
+            self.gameProgress1.betting_1(self.toBet)
+            self.updateMoney()
+            ####################################
+            ##########[ 플레이어 2 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.afterBetting_1(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
 
             #공유 카드 세 장 뽑기
             self.gameProgress1.update_notice("[Flop round]")
             self.gameProgress1.update_notice("3장의 공유 카드를 뽑습니다.")
             flop=[deck.pop() for i in range(3)]
             self.gameProgress1.append_communityCards(flop)
-            self.gameProgress1.betting_2()
-            self.gameProgress1.afterBetting_2()
+            self.OpenCard1Data = "" + str(self.gameProgress1.communityCards[0].rank) + str(self.gameProgress1.communityCards[0].suit)
+            self.OpenCard1Image_png = Image.open(cardImages.getImage(self.OpenCard1Data))
+            self.OpenCard1Image = ImageTk.PhotoImage(self.OpenCard1Image_png)
+            self.OpenCard1.configure(image=self.OpenCard1Image) #첫 번째 공유카드 보이기
+            self.OpenCard2Data = "" + str(self.gameProgress1.communityCards[1].rank) + str(self.gameProgress1.communityCards[1].suit)
+            self.OpenCard2Image_png = Image.open(cardImages.getImage(self.OpenCard2Data))
+            self.OpenCard2Image = ImageTk.PhotoImage(self.OpenCard2Image_png)
+            self.OpenCard2.configure(image=self.OpenCard2Image) #두 번째 공유카드 보이기
+            self.OpenCard3Data = "" + str(self.gameProgress1.communityCards[2].rank) + str(self.gameProgress1.communityCards[2].suit)
+            self.OpenCard3Image_png = Image.open(cardImages.getImage(self.OpenCard3Data))
+            self.OpenCard3Image = ImageTk.PhotoImage(self.OpenCard3Image_png)
+            self.OpenCard3.configure(image=self.OpenCard3Image) #세 번째 공유카드 보이기
+            ##########[ 플레이어 1 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
+            ##########[ 플레이어 2 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.afterBetting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
 
             #공유 카드 한 장 뽑기
+            
             self.gameProgress1.update_notice("[turn round]")
             self.gameProgress1.update_notice("1장의 공유 카드를 뽑습니다.")
             turn=[deck.pop() for i in range(1)]
             self.gameProgress1.append_communityCards(turn)
-            self.gameProgress1.betting_2()
-            self.gameProgress1.afterBetting_2()
+            self.OpenCard4Data = "" + str(self.gameProgress1.communityCards[3].rank) + str(self.gameProgress1.communityCards[3].suit)
+            self.OpenCard4Image_png = Image.open(cardImages.getImage(self.OpenCard4Data))
+            self.OpenCard4Image = ImageTk.PhotoImage(self.OpenCard4Image_png)
+            self.OpenCard4.configure(image=self.OpenCard4Image) #네 번째 공유카드 보이기
+            ##########[ 플레이어 1 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
+            ##########[ 플레이어 2 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.afterBetting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
 
             #공유 카드 한 장 뽑기
             self.gameProgress1.update_notice("[river round]")
             self.gameProgress1.update_notice("1장의 공유 카드를 뽑습니다.")
             river=[deck.pop() for i in range(1)]
             self.gameProgress1.append_communityCards(river)
-            self.gameProgress1.betting_2()
-            self.gameProgress1.afterBetting_2()
+            self.OpenCard5Data = "" + str(self.gameProgress1.communityCards[4].rank) + str(self.gameProgress1.communityCards[4].suit)
+            self.OpenCard5Image_png = Image.open(cardImages.getImage(self.OpenCard5Data))
+            self.OpenCard5Image = ImageTk.PhotoImage(self.OpenCard5Image_png)
+            self.OpenCard5.configure(image=self.OpenCard5Image) #다섯 번째 공유카드 보이기
+            ##########[ 플레이어 1 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
+            ##########[ 플레이어 2 베팅 ]#############
+            self.Betting = False
+            while (self.Betting == False):
+                pass
+            self.Betting = False
+            self.gameProgress1.afterBetting_2(self.playerChoice, self.toBet)
+            self.updateMoney()
+            #####################################
 
             # 승패 판정
             player1=self.gameProgress1.handsOfPlayer1+self.gameProgress1.communityCards
@@ -108,18 +259,29 @@ class Window:
             player2=game_jokbo.evaluateMax(game_jokbo.combination(player2))
 
             self.gameProgress1.update_notice("[결과]\n(" + self.gameProgress1.nameOfPlayer1 + ")의 최종 패:" +" <"+ game_jokbo.printEvaluate(player1) +"> "+ str(player1)+ "\n(" + self.gameProgress1.nameOfPlayer2 + ")의 최종 패: " + "<" + game_jokbo.printEvaluate(player2)+"> " + str(player2))
-            self.gameProgress1.print1()		
+            self.gameProgress1.print1()
+            
+            self.OpHand1Data = "" + str(self.gameProgress1.handsOfPlayer1[0].rank) + str(self.gameProgress1.handsOfPlayer1[0].suit)
+            self.OpHand1Image_png = Image.open(cardImages.getImage(self.OpHand1Data))
+            self.OpHand1Image = ImageTk.PhotoImage(self.OpHand1Image_png)
+            self.OpHand1.configure(image=self.OpHand1Image) #상대의 좌측 패 보이기
+            self.OpHand2Data = "" + str(self.gameProgress1.handsOfPlayer1[1].rank) + str(self.gameProgress1.handsOfPlayer1[1].suit)
+            self.OpHand2Image_png = Image.open(cardImages.getImage(self.OpHand2Data))
+            self.OpHand2Image = ImageTk.PhotoImage(self.OpHand2Image_png)
+            self.OpHand2.configure(image=self.OpHand2Image) #상대의 우측 패 보이기
                     
             if game_jokbo.compare(player1,player2) == True:
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer1+" 승리")
                 self.gameProgress1.print1()
                 self.gameProgress1.append_moneyOfPlayer1(self.gameProgress1.collectedBet)
+                self.updateMoney()
                 self.gameProgress1.reset()
                     
             elif game_jokbo.compare(player1,player2) == False:
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer2+" 승리")
                 self.gameProgress1.print1()
                 self.gameProgress1.append_moneyOfPlayer2(self.gameProgress1.collectedBet)
+                self.updateMoney()
                 self.gameProgress1.reset()
 
             else:
@@ -127,29 +289,91 @@ class Window:
                 self.gameProgress1.print1()
                 self.gameProgress1.append_moneyOfPlayer1(self.gameProgress1.bet1)
                 self.gameProgress1.append_moneyOfPlayer2(self.gameProgress1.bet2)
+                self.updateMoney()
                 self.gameProgress1.reset()
-
+                
             self.gameProgress1.print1()
+            self.BettingText.configure(text="0$ 베팅됨")
             deck.clear()		
 
-            if(self.gameProgress1.moneyOfPlayer1==0):
+            if(self.gameProgress1.moneyOfPlayer1<=0):
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer1+"님께서 파산하셨습니다.")
                 self.gameProgress1.print1()
                 break
                 
-            if(self.gameProgress1.moneyOfPlayer2==0):
+            if(self.gameProgress1.moneyOfPlayer2<=0):
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer2+"님께서 파산하셨습니다.")
                 self.gameProgress1.print1()
                 break
     ########## [한 세트] 종료 ##########
 
+    ########## [새로운 게임] 시작 ##########
+    def askRunGame(self):
+        self.goNext = msgPop.askquestion(programName, "새 게임을 시작할까요?", parent = self.mainWindow)
+        if (self.goNext == "no"
+            ):
+            return
+        self.runGame = True
+    ########## [새로운 게임] 부분의 종료 ######
+
+    ########## [초기 베팅] 시작 ##########
+    def askInitBetting(self):
+        self.goNext = msgPop.askquestion(programName, "베팅할까요?", parent = self.mainWindow)
+        if (self.goNext == "no"):
+            return
+        self.toBet = inpPop.askinteger(programName, "베팅할 액수를 입력하세요. (단위: $)", parent = self.mainWindow)
+        self.Betting = True
+    ########## [초기 베팅] 종료 ##########
+
+    ########## [베팅: 콜] 시작 ##########
+    def askCall(self):
+        self.goNext = msgPop.askquestion(programName, "베팅에 응할까요?", parent = self.mainWindow)
+        if (self.goNext == "no"):
+            return
+        self.playerChoice = 1 #1이 콜임
+        self.toBet = -1
+        self.Betting = True
+    ########## [베팅: 콜] 종료 ##########
+
+    ########## [베팅: 레이즈] 시작 ##########
+    def askRaiseValue(self):
+        self.goNext = msgPop.askquestion(programName, "베팅에 응하고, 추가베팅 할까요?", parent = self.mainWindow)
+        if (self.goNext == "no"):
+            return
+        self.toBet = inpPop.askinteger(programName, "추가 베팅할 액수를 입력하세요. (단위: $)", parent = self.mainWindow)
+        if (self.toBet is None):
+            return
+        self.playerChoice = 2 #2가 레이즈임
+        self.Betting = True
+    ########## [베팅: 레이즈] 종료 ##########
+
+    ########## [베팅: 레이즈] 시작 ##########
+    def askCheck(self):
+        self.goNext = msgPop.askquestion(programName, "베팅하지 않고, 턴을 넘길까요?", parent = self.mainWindow)
+        if (self.goNext == "no"):
+            return
+        self.toBet = -1
+        self.playerChoice = 3 #3이 체크임
+        self.Betting = True
+    ########## [베팅: 레이즈] 종료 ##########
+
+    ########## [베팅: 폴드] 시작 ##########
+    def askFold(self):
+        self.goNext = msgPop.askquestion(programName, "베팅을 포기할까요?", parent = self.mainWindow)
+        if (self.goNext == "no"):
+            return
+        self.toBet = -1
+        self.playerChoice = 4 #4가 폴드임
+        self.Betting = True
+    ########## [베팅: 폴드] 종료 ##########
+        
     def main(self):
-        self.gameThread()
         self.subT1 = threading.Thread()
+        self.gameThread()
         
         self.mainWindow = tkinter.Tk()
         #self.mainWindow.iconbitmap(programIcon)
-        self.mainWindow.title("LANPoker: Client")
+        self.mainWindow.title(programName)
         self.mainWindow.resizable(False, False)
         self.mainWindow.geometry(resolution)
         self.mainWindow.configure(background = "#252830")
@@ -161,11 +385,15 @@ class Window:
         플레이어2프사 = ImageTk.PhotoImage(고니_png)
 
         #베팅 버튼 이미지
+        시작_png = Image.open("./resources/START.png")
+        베팅_png = Image.open("./resources/BET.png")
         콜_png = Image.open("./resources/CALL.png")
         레이즈_png = Image.open("./resources/RAISE.png")
         체크_png = Image.open("./resources/CHECK.png")
         폴드_png = Image.open("./resources/FOLD.png")
-        콜 = ImageTk.PhotoImage(콜_png)
+        self.시작 = ImageTk.PhotoImage(시작_png)
+        self.베팅 = ImageTk.PhotoImage(베팅_png)
+        self.콜 = ImageTk.PhotoImage(콜_png)
         레이즈 = ImageTk.PhotoImage(레이즈_png)
         체크 = ImageTk.PhotoImage(체크_png)
         폴드 = ImageTk.PhotoImage(폴드_png)
@@ -210,7 +438,7 @@ class Window:
         self.Player1Account.configure(font=나눔스퀘어_16pt)
         self.Player1Account.configure(foreground="#FFFFFF")
         self.Player1Account.configure(justify='left')
-        self.Player1Account.configure(text='''소지금: 3000$''')
+        self.Player1Account.configure(text='''데이터 수신 대기중...''')
         self.Player1Account.configure(wraplength="200")
 
         #상대 패 (왼쪽)
@@ -224,7 +452,7 @@ class Window:
         self.OpHand1.configure(foreground="#000000")
         self.OpHand1.configure(highlightbackground=backgroundColor)
         self.OpHand1.configure(highlightcolor="black")
-        self.OpHand1.configure(relief="flat")
+        self.OpHand1.configure(relief=tkinter.FLAT)
         self.OpHand1.configure(pady="0")
         self.OpHand1.configure(text='''OpHand1''')
         
@@ -239,7 +467,7 @@ class Window:
         self.OpHand2.configure(foreground="#000000")
         self.OpHand2.configure(highlightbackground=backgroundColor)
         self.OpHand2.configure(highlightcolor="black")
-        self.OpHand2.configure(relief="flat")
+        self.OpHand2.configure(relief=tkinter.FLAT)
         self.OpHand2.configure(pady="0")
         self.OpHand2.configure(text='''OpHand2''')
 
@@ -260,7 +488,7 @@ class Window:
         self.BettingText.configure(font=나눔스퀘어_16pt)
         self.BettingText.configure(foreground="#BBBBBB")
         self.BettingText.configure(justify='left')
-        self.BettingText.configure(text='''3000$ 베팅됨''')
+        self.BettingText.configure(text='''0$ 베팅됨''')
         self.BettingText.configure(wraplength="200")
 
         #공유 카드 1
@@ -274,7 +502,7 @@ class Window:
         self.OpenCard1.configure(foreground="#000000")
         self.OpenCard1.configure(highlightbackground=backgroundColor)
         self.OpenCard1.configure(highlightcolor="black")
-        self.OpenCard1.configure(relief="flat")
+        self.OpenCard1.configure(relief=tkinter.FLAT)
         self.OpenCard1.configure(pady="0")
         self.OpenCard1.configure(text='''OpenCard''')
 
@@ -288,7 +516,7 @@ class Window:
         self.OpenCard2.configure(foreground="#000000")
         self.OpenCard2.configure(highlightbackground=backgroundColor)
         self.OpenCard2.configure(highlightcolor="black")
-        self.OpenCard2.configure(relief="flat")
+        self.OpenCard2.configure(relief=tkinter.FLAT)
         self.OpenCard2.configure(pady="0")
         self.OpenCard2.configure(text='''OpenCard''')
 
@@ -302,7 +530,7 @@ class Window:
         self.OpenCard3.configure(foreground="#000000")
         self.OpenCard3.configure(highlightbackground=backgroundColor)
         self.OpenCard3.configure(highlightcolor="black")
-        self.OpenCard3.configure(relief="flat")
+        self.OpenCard3.configure(relief=tkinter.FLAT)
         self.OpenCard3.configure(pady="0")
         self.OpenCard3.configure(text='''OpenCard''')
 
@@ -317,7 +545,7 @@ class Window:
         self.OpenCard4.configure(foreground="#000000")
         self.OpenCard4.configure(highlightbackground=backgroundColor)
         self.OpenCard4.configure(highlightcolor="black")
-        self.OpenCard4.configure(relief="flat")
+        self.OpenCard4.configure(relief=tkinter.FLAT)
         self.OpenCard4.configure(pady="0")
         self.OpenCard4.configure(text='''OpenCard''')
 
@@ -332,7 +560,7 @@ class Window:
         self.OpenCard5.configure(foreground="#000000")
         self.OpenCard5.configure(highlightbackground=backgroundColor)
         self.OpenCard5.configure(highlightcolor="black")
-        self.OpenCard5.configure(relief="flat")
+        self.OpenCard5.configure(relief=tkinter.FLAT)
         self.OpenCard5.configure(pady="0")
         self.OpenCard5.configure(text='''OpenCard''')
 
@@ -369,15 +597,13 @@ class Window:
         self.Player2Account.configure(font=나눔스퀘어_16pt)
         self.Player2Account.configure(foreground="#FFFFFF")
         self.Player2Account.configure(justify='left')
-        self.Player2Account.configure(text='''소지금: 3000$''')
+        self.Player2Account.configure(text='''데이터 수신 대기중...''')
         self.Player2Account.configure(wraplength="200")
 
         #내 패 (왼쪽)
         self.MyHand1 = tkinter.Button(self.mainWindow)
         self.MyHand1.place(relx=0.331, rely=0.733, height=275, width=200)
-        MyLeftHand_png = Image.open(cardImages.getImage(self.gameProgress1.handsOfPlayer2[0]))
-        MyLeftHand = ImageTk.PhotoImage(MyLeftHand_png)
-        self.MyHand1.configure(image=MyLeftHand)
+        self.MyHand1.configure(image=뒷면)
         self.MyHand1.configure(activebackground=backgroundColor)
         self.MyHand1.configure(activeforeground="#000000")
         self.MyHand1.configure(background=backgroundColor)
@@ -391,6 +617,7 @@ class Window:
         #내 패 (오른쪽)
         self.MyHand2 = tkinter.Button(self.mainWindow)
         self.MyHand2.place(relx=0.475, rely=0.733, height=275, width=200)
+        self.MyHand2.configure(image=뒷면)
         self.MyHand2.configure(activebackground=backgroundColor)
         self.MyHand2.configure(activeforeground="#000000")
         self.MyHand2.configure(background=backgroundColor)
@@ -404,33 +631,35 @@ class Window:
         #베팅 버튼: 콜
         self.Betting_CALL = tkinter.Button(self.mainWindow)
         self.Betting_CALL.place(relx=0.688, rely=0.744, height=75, width=200)
-        self.Betting_CALL.configure(image=콜)
+        self.Betting_CALL.configure(image=self.콜)
         self.Betting_CALL.configure(activebackground="#151820")
         self.Betting_CALL.configure(background=backgroundColor)
         self.Betting_CALL.configure(pady="0")
-        self.Betting_CALL.configure(relief="flat")
+        self.Betting_CALL.configure(relief=tkinter.FLAT)
         self.Betting_CALL.configure(text='''CALL''')
 
         #베팅 버튼: 체크
-        self.Betting_CHECK = tkinter.Button(self.mainWindow)
-        self.Betting_CHECK.place(relx=0.844, rely=0.744, height=75, width=200)
-        self.Betting_CHECK.configure(activebackground=backgroundColor)
-        self.Betting_CHECK.configure(image=레이즈)
-        self.Betting_CHECK.configure(activebackground="#151820")
-        self.Betting_CHECK.configure(background=backgroundColor)
-        self.Betting_CHECK.configure(pady="0")
-        self.Betting_CHECK.configure(relief="flat")
-        self.Betting_CHECK.configure(text='''RAISE''')
-
-        #베팅 버튼: 레이즈
         self.Betting_RAISE = tkinter.Button(self.mainWindow)
-        self.Betting_RAISE.place(relx=0.688, rely=0.867, height=75, width=200)
-        self.Betting_RAISE.configure(image=체크)
+        self.Betting_RAISE.place(relx=0.844, rely=0.744, height=75, width=200)
+        self.Betting_RAISE.configure(activebackground=backgroundColor)
+        self.Betting_RAISE.configure(image=레이즈)
         self.Betting_RAISE.configure(activebackground="#151820")
         self.Betting_RAISE.configure(background=backgroundColor)
         self.Betting_RAISE.configure(pady="0")
-        self.Betting_RAISE.configure(relief="flat")
-        self.Betting_RAISE.configure(text='''CHECK''')
+        self.Betting_RAISE.configure(relief=tkinter.FLAT)
+        self.Betting_RAISE.configure(text='''RAISE''')
+        self.Betting_RAISE.configure(command=self.askRaiseValue)
+
+        #베팅 버튼: 레이즈
+        self.Betting_CHECK = tkinter.Button(self.mainWindow)
+        self.Betting_CHECK.place(relx=0.688, rely=0.867, height=75, width=200)
+        self.Betting_CHECK.configure(image=체크)
+        self.Betting_CHECK.configure(activebackground="#151820")
+        self.Betting_CHECK.configure(background=backgroundColor)
+        self.Betting_CHECK.configure(pady="0")
+        self.Betting_CHECK.configure(relief=tkinter.FLAT)
+        self.Betting_CHECK.configure(text='''CHECK''')
+        self.Betting_CHECK.configure(command=self.askCheck)
 
         #베팅 버튼: 폴드
         self.Betting_FOLD = tkinter.Button(self.mainWindow)
@@ -439,12 +668,14 @@ class Window:
         self.Betting_FOLD.configure(activebackground="#151820")
         self.Betting_FOLD.configure(background=backgroundColor)
         self.Betting_FOLD.configure(pady="0")
-        self.Betting_FOLD.configure(relief="flat")
+        self.Betting_FOLD.configure(relief=tkinter.FLAT)
         self.Betting_FOLD.configure(text='''FOLD''')
+        self.Betting_CHECK.configure(command=self.askFold)
 
+        #GUI 메인루프
         self.mainWindow.update()
         self.mainWindow.mainloop()
-
+        
 #Application Start.
 mainWindow = Window()
 mainWindowThread = threading.Thread(target = mainWindow.main)

@@ -10,8 +10,8 @@ Version: v0.0.0.dev191021A.alpha
 Copyright 2019. 악동분홍토끼(pinkrabbit412@daum.net). All rights reserved.
 '''
 
-#cardValue = {'2', '3', '4',  '5',  '6',  '7',  '8',  '9',  'T',  'J', 'Q', 'K', 'A'}
-cardType = {"♠", "♥", "♣", "♦"}
+#cardValue = ['2', '3', '4',  '5',  '6',  '7',  '8',  '9',  'T',  'J', 'Q', 'K', 'A']
+cardType = ["♠", "♥", "♣", "♦"]
 
 def getImage(cardInfo):
     toReturn = "./resources/cards/" + cardInfo[0]
