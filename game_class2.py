@@ -6,9 +6,9 @@ from poker import Card
 from poker.hand import Hand, Combo
 
 import game_jokbo
-import game_class
+import game_class1
 
-class Print(game_class.GameInfo):     # 그냥 gui만들기 전에 값 전달 잘 되는지 확인해보려고 만들어본 클래스
+class Print(game_class1.GameInfo):     # 그냥 gui만들기 전에 값 전달 잘 되는지 확인해보려고 만들어본 클래스
     def print1(self):
         print(self.notice)
         print("============================================")

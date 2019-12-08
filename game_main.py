@@ -6,7 +6,7 @@ from poker import Card
 from poker.hand import Hand, Combo
 
 import game_jokbo
-import game_class
+import game_class1
 import game_class2
 
 
