@@ -76,17 +76,6 @@ class Window:
         self.Player1Account.configure(text=(str(self.gameProgress1.moneyOfPlayer1) + "$"))
         self.Player2Account.configure(text=(str(self.gameProgress1.moneyOfPlayer2) + "$"))
         self.BettingText.configure(text=str(self.gameProgress1.collectedBet) + "$ 베팅됨")
-            
-    ########## [한 세트] 시작 ##########
-    def newThread(self):
-        newT = threading.Thread(target=self.longTime1)
-        newT.start()
-        
-    def longTime1(self):
-        #오래 걸리는 코드
-        sleep(2)
-        msgPop.showinfo("앙", "김옥지");
-    ########## [한 세트] 종료 ##########
 
     ########## [한 세트] 시작 ##########
     def gameThread(self):
@@ -94,6 +83,69 @@ class Window:
         gameT.start()
         
     def game_main(self):
+        def __init__(self, serverIp):
+            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server = serverIp 
+            self.port = 2818
+            self.addr = (self.client, self.port)
+            self.locking = threading.Lock()
+        
+        def send(self, gameClass):
+            # 서버로 내 클라의 게임 정보를 보냄
+            try:
+                self.client.send(str.encode(gameClass))
+                reply = self.client.recv(2048).decode()
+                return reply
+            except socket.error as e:
+                return str(e)
+
+        def run(self):
+            #서버랑 연결
+            self.client.connect(self.addr)
+
+            # 계속 I/O해줌
+            sendThread = Threading.Thread(target= sThread)
+            readThread = Threading.Thread(target= rThread)
+            sendThread.start()
+            readThread.start()
+
+        def sThread(self):
+            while True:
+                #send my data
+                self.locking.acquire()
+                sendingData = pickle.dump(self.gameProgress1 )
+                sendingData = bytes(f"{len(sendingData):<{HEADER_LENGTH}}", 'utf-8')+sendingData
+                clientSocket.send(sendingData)
+                self.locking.release()
+
+        def rThread(self):
+            #get data
+
+            # 바이너리로 저장.
+            fullData = b''
+            newData = True
+                # 소켓으로 받는건 한번에 안오니까 전부 받을때까지 while로 대기.
+            while True:
+                data = s.recv(1024)
+                #맨 처음 새로운 데이터를 받았을때에만 실행.
+                if newData:
+                    # 전부 받으려면 크기를 알아야함. HEADER_LENGTH가 데이터 앞에 데이터크기 붙여놓은 크기임.
+                    # split 사용해서 그만큼만 잘라다가 씀.
+                    # print("new data len:",data[:HEADER_LENGTH])
+                    datalen = int(msg[:HEADER_LENGTH])
+                    new_msg = False
+
+                fullData += data
+
+                if len(fullData)-HEADER_LENGTH == datalen:
+                    print("full data received")
+                    ############## 게임 정보 클래스 저장할 것 #########################
+                    self.locking.acquire()
+                    self.gameProgress1.pickle.loads(full_msg[HEADERSIZE:])
+                    self.locking.release()
+                    ##################################################################
+                    break
+
         import random
         import poker
         from poker import Suit
@@ -473,11 +525,11 @@ class Window:
 
         #좌측 베팅 상황: 이미지
         self.BettingImage = tkinter.Canvas(self.mainWindow)
-        self.BettingImage.place(relx=0.025, rely=0.311, relheight=0.333, relwidth=0.188)
+        self.BettingImage.place(relx=0.025, rely=0.311, height=300, relwidth=0.188)
         self.BettingImage.configure(background=backgroundColor)
         self.BettingImage.configure(borderwidth="2")
         self.BettingImage.configure(insertbackground="black")
-        self.BettingImage.configure(relief="ridge")
+        self.BettingImage.configure(relief=tkinter.FLAT)
         self.BettingImage.configure(selectbackground="#c4c4c4")
         self.BettingImage.configure(selectforeground="black")
 
@@ -566,12 +618,10 @@ class Window:
 
         #내 정보: 내 프로필 사진
         self.Player2Image = tkinter.Canvas(self.mainWindow)
-        self.Player2Image.place(relx=0.025, rely=0.8, relheight=0.167, relwidth=0.094)
+        self.Player2Image.place(relx=0.025, rely=0.8, height=160, relwidth=0.1)
         self.Player2Image.create_image(0, 0, anchor = "nw", image = 플레이어2프사)
         self.Player2Image.configure(background=backgroundColor)
         self.Player2Image.configure(borderwidth="2")
-        self.Player2Image.configure(highlightbackground=backgroundColor)
-        self.Player2Image.configure(highlightcolor="black")
         self.Player2Image.configure(insertbackground="black")
         self.Player2Image.configure(relief="ridge")
         self.Player2Image.configure(selectbackground="#c4c4c4")
