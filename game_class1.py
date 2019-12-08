@@ -41,19 +41,19 @@ class GameInfo:    # 게임의 정보를 저장하는 클래스 GameInfo(전달 
 
 
     def append_moneyOfPlayer1(self,newMoney1):   # 매개변수: int형
-        self.moneyOfPlayer1+=newMoney1
+        self.moneyOfPlayer1+=int(newMoney1)
 
     def append_moneyOfPlayer2(self,newMoney2):   # 매개변수: int형
-        self.moneyOfPlayer2+=newMoney2
+        self.moneyOfPlayer2+=int(newMoney2)
 
     def append_collectedBet(self,newMoney3):  # 매개변수: int형
         self.collectedBet+=int(newMoney3)
 
     def append_bet1(self,newBet1):   # bet1의 값을 newBet1으로 바꾸는 메소드. update가 앞에 붙은거 다 마찬가지임.  
-        self.bet1+=newBet1       # 매개변수: int형
+        self.bet1+=int(newBet1)       # 매개변수: int형
 
     def append_bet2(self,newBet2):   # 매개변수: int형
-        self.bet2+=newBet2
+        self.bet2+=int(newBet2)
     
     def update_notice(self,newNotice):  # string형을 매개변수로 넣으면 notice의 값을 그걸로 갱신해주는 메소드.
         self.notice=newNotice       # 매개변수: string형.
