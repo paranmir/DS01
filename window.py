@@ -37,6 +37,7 @@ backgroundColor = "#252830"
 나눔스퀘어EB_24pt = "-family {나눔스퀘어 ExtraBold} -size 24 -weight bold "
 serverIp = "127.0.0.1"
 
+''' 서버를 열심히 짜주셨는데 연결을 못해서 속상ㅠㅠㅠㅠㅠㅠㅠㅠㅠ...
 class Client:
     # 클래스 선언하면 접속요청할 때 쓸 소켓 생성함
     # 클래스 생성할 때 인자로 유저로부터 서버아이피를 입력받아줘야함
@@ -59,6 +60,8 @@ class Client:
     def run(self, toSend):
         #서버랑 연결
         self.client.connect(self.addr)
+
+        #클래스 데이터를 받아 self.dataToSend에 저장하고 이를 활용...?
         self.dataToSend = toSend
 
         # 계속 io해줌
@@ -103,6 +106,7 @@ class Client:
                 self.locking.release()
                 ##################################################################
                 break
+'''
 
 class Window:
     def disableBetButtonsForStart(self):
@@ -129,11 +133,22 @@ class Window:
         except:
             self.disableBetButtons()
 
+    def disableAllBetButtons(self):
+        sleep(0.5) #GUI 생성 전에 쓸데없이 반복 실행되지 않도록 0.5초의 딜레이를 줌.
+        try:
+            self.Betting_CALL.config(state = tkinter.DISABLED)
+            self.Betting_RAISE.config(state = tkinter.DISABLED)
+            self.Betting_CHECK.config(state = tkinter.DISABLED)
+            self.Betting_FOLD.config(state = tkinter.DISABLED)
+        except:
+            self.disableBetButtons()
+
     def enableBetButtons(self):
         try:
             self.Betting_CALL.configure(image=self.콜)
             self.Betting_CALL.configure(command=self.askCall)
             self.Betting_CALL.image=self.콜
+            self.Betting_CALL.config(state = "normal")
             self.Betting_RAISE.config(state = "normal")
             self.Betting_CHECK.config(state = "normal")
             self.Betting_FOLD.config(state = "normal")
@@ -141,9 +156,21 @@ class Window:
             self.enableBetButtons()
 
     def updateMoney(self):
-        self.Player1Account.configure(text=(str(self.gameProgress1.moneyOfPlayer1) + "$"))
-        self.Player2Account.configure(text=(str(self.gameProgress1.moneyOfPlayer2) + "$"))
-        self.BettingText.configure(text=str(self.gameProgress1.collectedBet) + "$ 베팅됨")
+        self.Player2Account.configure(text=(str(self.gameProgress1.moneyOfPlayer1) + "$"))
+        self.Player1Account.configure(text=(str(self.gameProgress1.moneyOfPlayer2) + "$"))
+        bettingMoney = self.gameProgress1.collectedBet
+        self.BettingText.configure(text=str(bettingMoney) + "$ 베팅됨")
+        if (bettingMoney <= 300):
+            self.BettingImage.configure(image=None)
+        elif (bettingMoney <= 2300):
+            self.BettingImage.configure(image=self.베팅1단계)
+        elif (bettingMoney <= 12300):
+            self.BettingImage.configure(image=self.베팅2단계)
+        elif (bettingMoney <= 212300):
+            self.BettingImage.configure(image=self.베팅3단계)
+        else:
+            self.BettingImage.configure(image=self.베팅4단계)
+            
 
     ########## [한 세트] 시작 ##########
     def gameThread(self):
@@ -158,8 +185,8 @@ class Window:
         from poker import Card
         from poker.hand import Hand, Combo
         self.gameProgress1=game_class2.GameProgress("아귀", "고니", 10000, 10000)
-        newClient = Client
-        newClient.run(self.gameProgress1)
+        #newClient = Client
+        #newClient.run(self, self.gameProgress1)
         sleep(0.25) #GUI가 생성되기 전에 동기화되는 것을 방지
         
         while True:
@@ -213,11 +240,13 @@ class Window:
             self.updateMoney()
             ####################################
             ##########[ 플레이어 2 베팅 ]#############
-            self.Betting = False
+            self.disableAllBetButtons()
+            sleep(3)
+            '''self.Betting = False
             while (self.Betting == False):
                 pass
-            self.Betting = False
-            self.gameProgress1.afterBetting_1(self.playerChoice, self.toBet)
+            self.Betting = False'''
+            self.gameProgress1.afterBetting_1(1, 0)
             self.updateMoney()
             #####################################
 
@@ -239,12 +268,15 @@ class Window:
             self.OpenCard3Image = ImageTk.PhotoImage(self.OpenCard3Image_png)
             self.OpenCard3.configure(image=self.OpenCard3Image) #세 번째 공유카드 보이기
             ##########[ 플레이어 1 베팅 ]#############
+            self.disableAllBetButtons()
+            '''
             self.Betting = False
             while (self.Betting == False):
                 pass
-            self.Betting = False
-            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.Betting = False'''
+            self.gameProgress1.betting_2(1, 0)
             self.updateMoney()
+            self.enableBetButtons()
             #####################################
             ##########[ 플레이어 2 베팅 ]#############
             self.Betting = False
@@ -266,12 +298,16 @@ class Window:
             self.OpenCard4Image = ImageTk.PhotoImage(self.OpenCard4Image_png)
             self.OpenCard4.configure(image=self.OpenCard4Image) #네 번째 공유카드 보이기
             ##########[ 플레이어 1 베팅 ]#############
+            self.disableAllBetButtons()
+            sleep(3)
+            '''
             self.Betting = False
             while (self.Betting == False):
                 pass
-            self.Betting = False
-            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.Betting = False'''
+            self.gameProgress1.betting_2(1, 0)
             self.updateMoney()
+            self.enableBetButtons()
             #####################################
             ##########[ 플레이어 2 베팅 ]#############
             self.Betting = False
@@ -292,12 +328,16 @@ class Window:
             self.OpenCard5Image = ImageTk.PhotoImage(self.OpenCard5Image_png)
             self.OpenCard5.configure(image=self.OpenCard5Image) #다섯 번째 공유카드 보이기
             ##########[ 플레이어 1 베팅 ]#############
+            self.disableAllBetButtons()
+            sleep(3)
             self.Betting = False
+            '''
             while (self.Betting == False):
                 pass
-            self.Betting = False
-            self.gameProgress1.betting_2(self.playerChoice, self.toBet)
+            self.Betting = False'''
+            self.gameProgress1.betting_2(1, 0)
             self.updateMoney()
+            self.enableBetButtons()
             #####################################
             ##########[ 플레이어 2 베팅 ]#############
             self.Betting = False
@@ -333,6 +373,7 @@ class Window:
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer1+" 승리")
                 self.gameProgress1.print1()
                 self.gameProgress1.append_moneyOfPlayer1(self.gameProgress1.collectedBet)
+                self.BettingImage.configure(image=None)
                 self.updateMoney()
                 self.gameProgress1.reset()
                     
@@ -340,6 +381,7 @@ class Window:
                 self.gameProgress1.update_notice(self.gameProgress1.nameOfPlayer2+" 승리")
                 self.gameProgress1.print1()
                 self.gameProgress1.append_moneyOfPlayer2(self.gameProgress1.collectedBet)
+                self.BettingImage.configure(image=None)
                 self.updateMoney()
                 self.gameProgress1.reset()
 
@@ -450,12 +492,20 @@ class Window:
         레이즈_png = Image.open("./resources/RAISE.png")
         체크_png = Image.open("./resources/CHECK.png")
         폴드_png = Image.open("./resources/FOLD.png")
+        베팅1단계_png = Image.open("./resources/betting1.png")
+        베팅2단계_png = Image.open("./resources/betting2.png")
+        베팅3단계_png = Image.open("./resources/betting3.png")
+        베팅4단계_png = Image.open("./resources/betting4.png")
         self.시작 = ImageTk.PhotoImage(시작_png)
         self.베팅 = ImageTk.PhotoImage(베팅_png)
         self.콜 = ImageTk.PhotoImage(콜_png)
         레이즈 = ImageTk.PhotoImage(레이즈_png)
         체크 = ImageTk.PhotoImage(체크_png)
         폴드 = ImageTk.PhotoImage(폴드_png)
+        self.베팅1단계 = ImageTk.PhotoImage(베팅1단계_png)
+        self.베팅2단계 = ImageTk.PhotoImage(베팅2단계_png)
+        self.베팅3단계 = ImageTk.PhotoImage(베팅3단계_png)
+        self.베팅4단계 = ImageTk.PhotoImage(베팅4단계_png)
 
         #카드 뒷면 이미지
         뒷면_png = Image.open("./resources/cards/gray_back.png")
@@ -531,14 +581,11 @@ class Window:
         self.OpHand2.configure(text='''OpHand2''')
 
         #좌측 베팅 상황: 이미지
-        self.BettingImage = tkinter.Canvas(self.mainWindow)
-        self.BettingImage.place(relx=0.025, rely=0.311, height=300, relwidth=0.188)
+        self.BettingImage = tkinter.Button(self.mainWindow)
+        self.BettingImage.place(relx=0.025, rely=0.311, height=300, width=300)
         self.BettingImage.configure(background=backgroundColor)
-        self.BettingImage.configure(borderwidth="2")
-        self.BettingImage.configure(insertbackground="black")
+        self.BettingImage.configure(borderwidth="0")
         self.BettingImage.configure(relief=tkinter.FLAT)
-        self.BettingImage.configure(selectbackground="#c4c4c4")
-        self.BettingImage.configure(selectforeground="black")
 
         #좌측 베팅 상황: 텍스트
         self.BettingText= tkinter.Label(self.mainWindow)
