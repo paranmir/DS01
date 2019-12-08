@@ -2,8 +2,17 @@ import socket
 import threading
 import select
 import pickle
+import copyreg
+import game_class1
 
 HEADER_LENGTH = 10
+
+globaldata
+
+def pickle_GameInfo(data):
+    return GameInfo, (GameInfo.nameOfPlayer1, GameInfo.nameOfPlayer2, GameInfo.handsOfPlayer1, GameInfo.handsOfPlayer2, GameInfo.moneyOfPlayer1, GameInfo.moneyOfPlayer2, GameInfo.communityCards, GameInfo.bet1, GameInfo.bet2, GameInfo.collectedBet, GameInfo.notice)
+
+
 class Server:
     def __init__(self):
         #서버 소켓 생성. ipv4 사용
@@ -47,7 +56,7 @@ class Server:
                     data = recvData(clientSocket)
                     ################### 데이터 저장 ###################
                     self.locking.release()
-                    # ex ) something_data_class = data
+                    globaldata = data
                     self.locking.release()
                     ##################################################  
 
@@ -66,7 +75,7 @@ class Server:
                     data = recvData(renewedSocket)
                     ################### 데이터 저장 ###################
                     self.locking.acquire()
-                    # ex ) something_data_class = data
+                    globaldata = data
                     self.locking.release()
                     ##################################################  
                     
@@ -86,7 +95,7 @@ class Server:
     def sendData(clientSocket):
         ########################데이터 보내기 #######################
         self.locking.acquire()
-        # sendingData = pickle.dumps(''' 보낼 데이터(클래스/튜플/뭐든) ''')
+        sendingData = pickle.dumps(globaldata)
         self.locking.release()
         ############################################################
         sendingData = bytes(f"{len(sendingData):<{HEADER_LENGTH}}", 'utf-8')+sendingData
@@ -119,3 +128,8 @@ class Server:
                     ##################################################################
         except:
             return False
+
+copyreg.pickle(GameInfo, pickle_GameInfo)
+
+SVR = Server()
+SVR.run()
