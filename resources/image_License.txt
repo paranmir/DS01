@@ -1,0 +1,8 @@
+[고니.png, 아귀.png]
+Copyright 2006. (주)싸이더스(Sidus Corp.).
+
+[./cards/<58 images>]
+* ./cards/CardImage_Copyright.txt
+
+All images except above, I(@pinkrabbit412) made it self.
+Feel free to use! :)
