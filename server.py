@@ -5,13 +5,12 @@ import pickle
 import copyreg
 import game_class1
 
-HEADER_LENGTH = 10
+global globalData
 
-globaldata
+HEADER_LENGTH = 10
 
 def pickle_GameInfo(data):
     return GameInfo, (GameInfo.nameOfPlayer1, GameInfo.nameOfPlayer2, GameInfo.handsOfPlayer1, GameInfo.handsOfPlayer2, GameInfo.moneyOfPlayer1, GameInfo.moneyOfPlayer2, GameInfo.communityCards, GameInfo.bet1, GameInfo.bet2, GameInfo.collectedBet, GameInfo.notice)
-
 
 class Server:
     def __init__(self):
@@ -56,7 +55,7 @@ class Server:
                     data = recvData(clientSocket)
                     ################### 데이터 저장 ###################
                     self.locking.release()
-                    globaldata = data
+                    globalData = data
                     self.locking.release()
                     ##################################################  
 
@@ -75,7 +74,7 @@ class Server:
                     data = recvData(renewedSocket)
                     ################### 데이터 저장 ###################
                     self.locking.acquire()
-                    globaldata = data
+                    globalData = data
                     self.locking.release()
                     ##################################################  
                     
@@ -95,7 +94,7 @@ class Server:
     def sendData(clientSocket):
         ########################데이터 보내기 #######################
         self.locking.acquire()
-        sendingData = pickle.dumps(globaldata)
+        sendingData = pickle.dumps(globalData)
         self.locking.release()
         ############################################################
         sendingData = bytes(f"{len(sendingData):<{HEADER_LENGTH}}", 'utf-8')+sendingData
